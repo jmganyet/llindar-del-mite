@@ -26,15 +26,25 @@ test('toggling a mytheme off removes it from the composition', () => {
 });
 
 test('count dial limits how many mythemes are drawn', () => {
+  // temperature 0 freezes the count drift, so the dial is exact (the sample size
+  // equals `count`; dependency closure may add active parents on top).
   const s = defaultState();
   s.params.count = 3;
+  s.params.temperature = 0;
   const comp = buildComposition(s);
   const distinct = new Set(comp.placed.map(p => p.id));
-  // The dial caps the random sample at `count`; dependency closure may add
-  // active parents on top, so the rendered count can slightly exceed `count`
-  // (coherent figures over an exact count) but stays below the full set.
   assert.ok(distinct.size >= 3, 'at least the sampled count is drawn');
   assert.ok(distinct.size < MYTHEME_ORDER.length, 'fewer than all mythemes');
+});
+
+test('temperature drift can change the number of mythemes present', () => {
+  // with temperature high, the rendered mytheme count varies across seeds
+  const counts = new Set();
+  for (let seed = 1; seed <= 40; seed++) {
+    const s = defaultState(); s.seed = seed; s.params.count = 5; s.params.temperature = 2;
+    counts.add(new Set(buildComposition(s).placed.map(p => p.id)).size);
+  }
+  assert.ok(counts.size > 1, 'presence should vary across generations at high temperature');
 });
 
 test('composition carries seed, mode, renderMode and jitter', () => {

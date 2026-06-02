@@ -39,26 +39,28 @@ function daphnePit(rng, params) {
 }
 
 function bracosBranca(rng, params) {
-  // two arms raised from the shoulders, each forking into bare twigs (fingers -> branches)
+  // 1–3 arms raised from the shoulders, each forking into bare twigs (fingers -> branches).
+  // angle convention: measured from straight-up; tip = (sin a, -cos a) * length.
   const strokes = [];
   const anchors = { base: { x: 0, y: 0 } };
   const tipNames = [];
   let t = 0;
-  for (let a = 0; a < 2; a++) {
-    const side = a === 0 ? -1 : 1;
-    const spread = Math.max(6, vary(rng, 19, 6, params));
-    const rise = Math.max(16, vary(rng, 37, 8, params));
-    const handX = side * spread, handY = -rise;
+  const nArms = rng.int(1, 3);
+  const A = 0.6;  // max fan half-angle
+  for (let a = 0; a < nArms; a++) {
+    const ang = (nArms === 1 ? 0 : (a / (nArms - 1) - 0.5) * 2 * A) + vary(rng, 0, 0.18, params);
+    const armLen = Math.max(16, vary(rng, 38, 9, params));
+    const handX = Math.sin(ang) * armLen, handY = -Math.cos(ang) * armLen;
     // upper arm: shoulder -> elbow -> raised hand
     strokes.push({ width: 3, segments: [
-      { p0: { x: 0, y: 0 }, c1: { x: side * spread * 0.3, y: -rise * 0.3 + vary(rng, 0, 4, params) }, c2: { x: side * spread * 0.7, y: -rise * 0.6 }, p1: { x: handX, y: handY } },
+      { p0: { x: 0, y: 0 }, c1: { x: handX * 0.3, y: handY * 0.35 + vary(rng, 0, 4, params) }, c2: { x: handX * 0.7, y: handY * 0.7 }, p1: { x: handX, y: handY } },
     ] });
-    // bare twigs sprouting from the hand
+    // bare twigs sprouting from the hand, fanning around the arm direction
     const twigs = rng.int(2, 3);
     for (let i = 0; i < twigs; i++) {
       const tl = Math.max(5, vary(rng, 12, 4, params));
-      const ang = -Math.PI / 2 + side * 0.25 + (i - (twigs - 1) / 2) * 0.5 + vary(rng, 0, 0.25, params);
-      const ex = handX + Math.cos(ang) * tl, ey = handY + Math.sin(ang) * tl;
+      const fa = ang + (i - (twigs - 1) / 2) * 0.5 + vary(rng, 0, 0.2, params);
+      const ex = handX + Math.sin(fa) * tl, ey = handY - Math.cos(fa) * tl;
       strokes.push({ width: 1.5, segments: [
         { p0: { x: handX, y: handY }, c1: { x: handX + (ex - handX) * 0.4, y: handY + (ey - handY) * 0.4 }, c2: { x: ex, y: ey + 2 }, p1: { x: ex, y: ey } },
       ] });

@@ -60,7 +60,13 @@ function applyScatter(rng, placed, params) {
 export function buildComposition(state) {
   const rng = makeRng(state.seed);
   let ids = MYTHEME_ORDER.filter(id => state.active[id]);
-  ids = sampleSubset(rng, ids, Math.min(state.params.count, ids.length));
+  // the number of mythemes present drifts around the slider value, scaled by
+  // temperature (0 = exactly `count`); the slider stays the centre of the dial.
+  const tmp = state.params.temperature != null ? state.params.temperature : 1;
+  const span = Math.round(tmp * 1.5);
+  let target = state.params.count + (span > 0 ? rng.int(-span, span) : 0);
+  target = Math.max(1, Math.min(target, ids.length));
+  ids = sampleSubset(rng, ids, target);
   ids = closeDeps(ids, state.active);
 
   const instances = {};

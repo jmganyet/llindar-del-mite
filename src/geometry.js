@@ -1,8 +1,8 @@
 // src/geometry.js
 export function applyTransform(t, p) {
-  const s = t.scale ?? 1, r = t.rotation ?? 0;
+  const s = t.scale ?? 1, r = t.rotation ?? 0, fx = t.flipX ? -1 : 1;
   const cos = Math.cos(r), sin = Math.sin(r);
-  const x = p.x * s, y = p.y * s;
+  const x = p.x * s * fx, y = p.y * s;
   return { x: t.x + x * cos - y * sin, y: t.y + x * sin + y * cos };
 }
 

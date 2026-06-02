@@ -25,20 +25,27 @@ test('placeON places every active mytheme (laurel once per branch tip)', () => {
   assert.equal(laurels, inst['bracos-branca'].tipNames.length);
 });
 
-test('Apollo is on the opposite (right) side of Daphne', () => {
-  const inst = allInstances(1);
-  const placed = placeON(makeRng(1), inst, PARAMS, CANVAS);
-  const apollo = placed.find(p => p.id === 'apollo-gest');
-  const daphne = placed.find(p => p.id === 'daphne-cos');
-  assert.ok(apollo.transform.x > daphne.transform.x, 'apollo right of daphne');
+test('Daphne and Apollo sit on opposite sides, well separated (either mirroring)', () => {
+  for (let seed = 1; seed <= 50; seed++) {
+    const placed = placeON(makeRng(seed), allInstances(seed), PARAMS, CANVAS);
+    const apollo = placed.find(p => p.id === 'apollo-gest');
+    const daphne = placed.find(p => p.id === 'daphne-cos');
+    assert.ok(Math.abs(apollo.transform.x - daphne.transform.x) > CANVAS.W * 0.1, `seed ${seed}: pair too close`);
+  }
 });
 
-test('Apollo hand points toward Daphne (leftward)', () => {
-  const inst = allInstances(1);
-  const placed = placeON(makeRng(1), inst, PARAMS, CANVAS);
-  const apollo = placed.find(p => p.id === 'apollo-gest');
-  const hand = resolveAnchor(apollo, 'hand');
-  assert.ok(hand.x < apollo.transform.x, 'hand reaches left toward daphne');
+test('Apollo always reaches toward Daphne (mirror-safe pursuit)', () => {
+  for (let seed = 1; seed <= 50; seed++) {
+    const placed = placeON(makeRng(seed), allInstances(seed), PARAMS, CANVAS);
+    const apollo = placed.find(p => p.id === 'apollo-gest');
+    const daphne = placed.find(p => p.id === 'daphne-cos');
+    const hand = resolveAnchor(apollo, 'hand');
+    assert.equal(
+      Math.sign(hand.x - apollo.transform.x),
+      Math.sign(daphne.transform.x - apollo.transform.x),
+      `seed ${seed}: Apollo not reaching toward Daphne`,
+    );
+  }
 });
 
 test('arms attach at the shoulder of the body', () => {
