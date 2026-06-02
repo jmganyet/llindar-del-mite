@@ -89,14 +89,14 @@ test('placeOFF places exactly one of each active mytheme', () => {
 test('placeOFF keeps placements within canvas', () => {
   const placed = placeOFF(makeRng(3), allInstances(3), PARAMS, CANVAS);
   for (const p of placed) {
-    assert.ok(p.transform.x >= 0 && p.transform.x <= CANVAS.W);
-    assert.ok(p.transform.y >= 0 && p.transform.y <= CANVAS.H);
+    assert.ok(p.transform.x >= CANVAS.W * 0.15 && p.transform.x <= CANVAS.W * 0.85);
+    assert.ok(p.transform.y >= CANVAS.H * 0.15 && p.transform.y <= CANVAS.H * 0.85);
   }
 });
 
 test('placeOFF breaks the laurel-at-branch-tip relation', () => {
   const inst = allInstances(1);
-  const off = placeOFF(makeRng(1), inst, CANVAS && PARAMS, CANVAS);
+  const off = placeOFF(makeRng(1), inst, PARAMS, CANVAS);
   const arms = off.find(p => p.id === 'bracos-branca');
   const tips = arms.mytheme.tipNames.map(tn => resolveAnchor(arms, tn));
   const laurel = off.find(p => p.id === 'llorer');

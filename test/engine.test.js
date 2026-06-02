@@ -30,7 +30,11 @@ test('count dial limits how many mythemes are drawn', () => {
   s.params.count = 3;
   const comp = buildComposition(s);
   const distinct = new Set(comp.placed.map(p => p.id));
-  assert.ok(distinct.size <= 3);
+  // The dial caps the random sample at `count`; dependency closure may add
+  // active parents on top, so the rendered count can slightly exceed `count`
+  // (coherent figures over an exact count) but stays below the full set.
+  assert.ok(distinct.size >= 3, 'at least the sampled count is drawn');
+  assert.ok(distinct.size < MYTHEME_ORDER.length, 'fewer than all mythemes');
 });
 
 test('composition carries seed, mode, renderMode and jitter', () => {
@@ -54,4 +58,14 @@ test('changing seed changes the composition', () => {
 
 test('CANVAS has expected dimensions', () => {
   assert.deepEqual(CANVAS, { W: 900, H: 700 });
+});
+
+test('compositions never render a child mytheme without its parent', () => {
+  for (let seed = 1; seed <= 200; seed++) {
+    const s = defaultState(); s.seed = seed; s.params.count = 4;
+    const ids = new Set(buildComposition(s).placed.map((p) => p.id));
+    if (ids.has('llorer')) assert.ok(ids.has('bracos-branca'), `seed ${seed}: llorer without branch`);
+    if (ids.has('bracos-branca')) assert.ok(ids.has('daphne-cos'), `seed ${seed}: branch without cos`);
+    if (ids.has('daphne-pit')) assert.ok(ids.has('daphne-cos'), `seed ${seed}: pit without cos`);
+  }
 });

@@ -5,6 +5,26 @@ import { placeON, placeOFF } from './grammar.js';
 
 export const CANVAS = { W: 900, H: 700 };
 
+const DEPENDS = {
+  'daphne-pit': ['daphne-cos'],
+  'bracos-branca': ['daphne-cos'],
+  'llorer': ['bracos-branca'],
+};
+
+function closeDeps(ids, active) {
+  const set = new Set(ids);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const id of [...set]) {
+      for (const dep of DEPENDS[id] || []) {
+        if (active[dep] && !set.has(dep)) { set.add(dep); changed = true; }
+      }
+    }
+  }
+  return MYTHEME_ORDER.filter((id) => set.has(id));
+}
+
 export function defaultState() {
   return {
     seed: 1,
@@ -41,6 +61,7 @@ export function buildComposition(state) {
   const rng = makeRng(state.seed);
   let ids = MYTHEME_ORDER.filter(id => state.active[id]);
   ids = sampleSubset(rng, ids, Math.min(state.params.count, ids.length));
+  ids = closeDeps(ids, state.active);
 
   const instances = {};
   for (const id of ids) instances[id] = MYTHEMES[id](rng, state.params);
