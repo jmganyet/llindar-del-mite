@@ -3,7 +3,7 @@ import { applyTransform } from './geometry.js';
 
 export function placeON(rng, instances, params, canvas) {
   const { W, H } = canvas, S = params.scale, placed = [];
-  const dCx = W * 0.40, dCy = H * 0.50;
+  const dCx = W * 0.38, dCy = H * 0.50;
   const cosT = { x: dCx, y: dCy, scale: S, rotation: 0 };
   const cos = instances['daphne-cos'];
   if (cos) placed.push({ id: 'daphne-cos', transform: cosT, mytheme: cos });
@@ -31,7 +31,7 @@ export function placeON(rng, instances, params, canvas) {
   if (instances['riu-peneu'])
     placed.push({ id: 'riu-peneu', transform: { x: W * 0.5, y: H * 0.85, scale: S, rotation: 0 }, mytheme: instances['riu-peneu'] });
 
-  const aCx = W * 0.68, aCy = H * 0.45;
+  const aCx = W * 0.60, aCy = H * 0.43;
   if (instances['apollo-gest'])
     placed.push({ id: 'apollo-gest', transform: { x: aCx, y: aCy, scale: S, rotation: 0 }, mytheme: instances['apollo-gest'] });
   if (instances['apollo-fallus'])
