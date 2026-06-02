@@ -1,0 +1,21 @@
+<!-- test/render-manual.html -->
+<!doctype html>
+<html lang="ca"><head><meta charset="utf-8"><title>render manual</title></head>
+<body>
+<script src="../vendor/p5.min.js"></script>
+<script type="module">
+import { defaultState, buildComposition } from '../src/engine.js';
+import { drawComposition } from '../src/render.js';
+const style = { bg: '#c8a062', stroke: '#4a2c14' };
+let comp;
+new p5((p) => {
+  p.setup = () => {
+    p.createCanvas(900, 700); p.noLoop();
+    const s = defaultState(); comp = buildComposition(s); p.redraw();
+    window.toggleMode = () => { const s2 = defaultState(); s2.renderMode = 'single'; comp = buildComposition(s2); p.redraw(); };
+  };
+  p.draw = () => drawComposition(p, comp, style);
+});
+</script>
+<p>Obre la consola i executa <code>toggleMode()</code> per veure el mode línia única.</p>
+</body></html>
