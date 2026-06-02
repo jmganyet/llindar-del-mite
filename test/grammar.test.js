@@ -78,3 +78,35 @@ test('placeON is deterministic for the same seed', () => {
   const p2 = placeON(makeRng(1), allInstances(1), PARAMS, CANVAS).map(p => p.transform);
   assert.deepEqual(p1, p2);
 });
+
+test('placeOFF places exactly one of each active mytheme', () => {
+  const inst = allInstances(1);
+  const placed = placeOFF(makeRng(1), inst, PARAMS, CANVAS);
+  assert.equal(placed.length, Object.keys(inst).length);
+  assert.deepEqual(placed.map(p => p.id).sort(), Object.keys(inst).sort());
+});
+
+test('placeOFF keeps placements within canvas', () => {
+  const placed = placeOFF(makeRng(3), allInstances(3), PARAMS, CANVAS);
+  for (const p of placed) {
+    assert.ok(p.transform.x >= 0 && p.transform.x <= CANVAS.W);
+    assert.ok(p.transform.y >= 0 && p.transform.y <= CANVAS.H);
+  }
+});
+
+test('placeOFF breaks the laurel-at-branch-tip relation', () => {
+  const inst = allInstances(1);
+  const off = placeOFF(makeRng(1), inst, CANVAS && PARAMS, CANVAS);
+  const arms = off.find(p => p.id === 'bracos-branca');
+  const tips = arms.mytheme.tipNames.map(tn => resolveAnchor(arms, tn));
+  const laurel = off.find(p => p.id === 'llorer');
+  const coincides = tips.some(t => Math.hypot(t.x - laurel.transform.x, t.y - laurel.transform.y) < 1e-6);
+  assert.ok(!coincides, 'laurel is NOT pinned to a branch tip in OFF mode');
+});
+
+test('placeOFF differs from placeON for the same instances', () => {
+  const inst = allInstances(1);
+  const on = placeON(makeRng(1), inst, PARAMS, CANVAS).map(p => p.transform);
+  const off = placeOFF(makeRng(1), inst, PARAMS, CANVAS).map(p => p.transform);
+  assert.notDeepEqual(on, off);
+});
