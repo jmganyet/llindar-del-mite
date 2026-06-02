@@ -32,8 +32,10 @@ export function defaultState() {
     seed: 1,
     mode: 'on',
     renderMode: 'multi',
-    active: Object.fromEntries(MYTHEME_ORDER.map(id => [id, true])),
-    params: { count: 7, jitter: 0, scatter: 0, scale: 2.6, temperature: 1 },
+    // llorer (explicit laurel) is off by default — the bare branches carry the
+    // transformation, matching the Picasso reference; it stays as an optional toggle.
+    active: Object.fromEntries(MYTHEME_ORDER.map(id => [id, id !== 'llorer'])),
+    params: { count: 7, jitter: 0, scatter: 0, scale: 2.4, temperature: 1 },
   };
 }
 

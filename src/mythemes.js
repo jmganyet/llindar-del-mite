@@ -45,29 +45,30 @@ function bracosBranca(rng, params) {
   const anchors = { base: { x: 0, y: 0 } };
   const tipNames = [];
   let t = 0;
-  const nArms = rng.int(1, 3);
-  const A = 0.6;  // max fan half-angle
+  const nArms = rng.int(2, 3);
+  const A = 0.55;  // max fan half-angle
   for (let a = 0; a < nArms; a++) {
-    const ang = (nArms === 1 ? 0 : (a / (nArms - 1) - 0.5) * 2 * A) + vary(rng, 0, 0.18, params);
+    const ang = (nArms === 1 ? 0 : (a / (nArms - 1) - 0.5) * 2 * A) + vary(rng, 0, 0.16, params);
     const armLen = Math.max(16, vary(rng, 38, 9, params));
     const handX = Math.sin(ang) * armLen, handY = -Math.cos(ang) * armLen;
-    // upper arm: shoulder -> elbow -> raised hand
+    // bare branch: shoulder -> raised tip, one clean line
     strokes.push({ width: 3, segments: [
-      { p0: { x: 0, y: 0 }, c1: { x: handX * 0.3, y: handY * 0.35 + vary(rng, 0, 4, params) }, c2: { x: handX * 0.7, y: handY * 0.7 }, p1: { x: handX, y: handY } },
+      { p0: { x: 0, y: 0 }, c1: { x: handX * 0.3, y: handY * 0.35 + vary(rng, 0, 3, params) }, c2: { x: handX * 0.7, y: handY * 0.7 }, p1: { x: handX, y: handY } },
     ] });
-    // bare twigs sprouting from the hand, fanning around the arm direction
-    const twigs = rng.int(2, 3);
+    // at most a single small fork at the tip (often none) — keep it sparse
+    const twigs = rng.int(0, 1);
     for (let i = 0; i < twigs; i++) {
-      const tl = Math.max(5, vary(rng, 12, 4, params));
-      const fa = ang + (i - (twigs - 1) / 2) * 0.5 + vary(rng, 0, 0.2, params);
+      const tl = Math.max(5, vary(rng, 11, 3, params));
+      const fa = ang + (i === 0 ? 0.4 : -0.4) + vary(rng, 0, 0.15, params);
       const ex = handX + Math.sin(fa) * tl, ey = handY - Math.cos(fa) * tl;
       strokes.push({ width: 1.5, segments: [
         { p0: { x: handX, y: handY }, c1: { x: handX + (ex - handX) * 0.4, y: handY + (ey - handY) * 0.4 }, c2: { x: ex, y: ey + 2 }, p1: { x: ex, y: ey } },
       ] });
-      const name = 'tip' + (t++);
-      anchors[name] = { x: ex, y: ey };
-      tipNames.push(name);
     }
+    // the branch tip itself is a laurel anchor (used only if the optional llorer is toggled on)
+    const name = 'tip' + (t++);
+    anchors[name] = { x: handX, y: handY };
+    tipNames.push(name);
   }
   return { id: 'bracos-branca', strokes, anchors, tipNames, bounds: boundsOf(strokes) };
 }
@@ -119,7 +120,7 @@ function apolloFallus(rng, params) {
 }
 
 function riuPeneu(rng, params) {
-  const n = rng.int(2, 3), w = Math.max(80, vary(rng, 150, 30, params));
+  const n = rng.int(1, 2), w = Math.max(80, vary(rng, 150, 30, params));
   const wob = Math.max(1, vary(rng, 5, 3, params));
   const strokes = [];
   for (let i = 0; i < n; i++) {

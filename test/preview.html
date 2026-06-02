@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ca"><head><meta charset="utf-8"><title>preview</title>
+<style>body{margin:0;background:#b89055}</style></head>
+<body>
+<script src="../vendor/p5.min.js"></script>
+<script type="module">
+// dev harness: render a specific config in the real p5 pipeline.
+// usage: preview.html#seed=4&mode=off&render=single&temp=1.3
+import { defaultState, buildComposition } from '../src/engine.js';
+import { drawComposition } from '../src/render.js';
+const q = new URLSearchParams(location.hash.slice(1));
+const s = defaultState();
+if (q.get('seed')) s.seed = +q.get('seed');
+if (q.get('mode')) s.mode = q.get('mode');
+if (q.get('render')) s.renderMode = q.get('render');
+if (q.get('temp')) s.params.temperature = +q.get('temp');
+const comp = buildComposition(s);
+const style = { bg: '#c8a062', stroke: '#4a2c14' };
+new p5((p) => { p.setup = () => { p.createCanvas(900, 700); p.noLoop(); drawComposition(p, comp, style); }; });
+</script>
+</body></html>

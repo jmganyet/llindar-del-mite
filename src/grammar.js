@@ -20,7 +20,7 @@ export function placeON(rng, instances, params, canvas, panelArg) {
   const dir = rng.next() < 0.5 ? 1 : -1;                       // +1: Daphne left / Apollo right
   const gap = panel.w * clamp(0.22 + Math.abs(rng.range(0, 0.06) * tmp), 0.18, 0.34);
   const cx = pcx + rng.range(-1, 1) * panel.w * 0.04 * tmp;
-  const cy = panel.y + panel.h * 0.46 + rng.range(-1, 1) * panel.h * 0.04 * tmp;
+  const cy = panel.y + panel.h * 0.50 + rng.range(-1, 1) * panel.h * 0.04 * tmp;
   const inset = (f) => [panel.x + panel.w * f, panel.x + panel.w * (1 - f)];
   const [lo, hi] = inset(0.16);
   const daphneX = clamp(cx - dir * gap / 2, lo, hi);
