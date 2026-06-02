@@ -38,6 +38,7 @@ export function setupUI(state, callbacks) {
     wrap.appendChild(l); wrap.appendChild(s); gParams.appendChild(wrap);
   };
   slider('count', 'Nombre de mitemes', 1, 7, 1);
+  slider('temperature', 'Temperatura', 0, 2.5, 0.1);
   slider('jitter', 'Tremolor', 0, 8, 0.5);
   slider('scatter', 'Dispersió', 0, 80, 1);
   slider('scale', 'Escala', 1, 3.5, 0.1);

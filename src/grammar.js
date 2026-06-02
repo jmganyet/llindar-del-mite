@@ -3,8 +3,9 @@ import { applyTransform } from './geometry.js';
 
 export function placeON(rng, instances, params, canvas) {
   const { W, H } = canvas, S = params.scale, placed = [];
+  const tmp = params.temperature != null ? params.temperature : 1;
   const dCx = W * 0.38, dCy = H * 0.50;
-  const cosT = { x: dCx, y: dCy, scale: S, rotation: 0 };
+  const cosT = { x: dCx, y: dCy, scale: S, rotation: rng.range(-0.08, 0.08) * tmp };
   const cos = instances['daphne-cos'];
   if (cos) placed.push({ id: 'daphne-cos', transform: cosT, mytheme: cos });
 
@@ -17,7 +18,7 @@ export function placeON(rng, instances, params, canvas) {
   const arms = instances['bracos-branca'];
   if (arms && cos) {
     const sh = applyTransform(cosT, cos.anchors.shoulder);
-    armsT = { x: sh.x, y: sh.y, scale: S, rotation: rng.range(-0.1, 0.1) };
+    armsT = { x: sh.x, y: sh.y, scale: S, rotation: rng.range(-0.1, 0.1) * tmp };
     placed.push({ id: 'bracos-branca', transform: armsT, mytheme: arms });
   }
 

@@ -31,7 +31,7 @@ export function defaultState() {
     mode: 'on',
     renderMode: 'multi',
     active: Object.fromEntries(MYTHEME_ORDER.map(id => [id, true])),
-    params: { count: 7, jitter: 0, scatter: 0, scale: 2.2 },
+    params: { count: 7, jitter: 0, scatter: 0, scale: 2.2, temperature: 1 },
   };
 }
 
