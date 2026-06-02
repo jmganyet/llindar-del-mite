@@ -22,6 +22,12 @@ export function cubicPoint(seg, u) {
   };
 }
 
+// the square leather panel the scene is drawn inside (centred inset of the canvas)
+export function panelOf(W, H) {
+  const s = Math.min(W, H) * 0.78;
+  return { x: (W - s) / 2, y: (H - s) / 2, w: s, h: s };
+}
+
 export function resolveAnchor(placed, name) {
   return applyTransform(placed.transform, placed.mytheme.anchors[name]);
 }

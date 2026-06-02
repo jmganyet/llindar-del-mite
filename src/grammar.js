@@ -1,36 +1,42 @@
 // src/grammar.js
-import { applyTransform } from './geometry.js';
+import { applyTransform, panelOf } from './geometry.js';
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
-// MODE ON: two coherent characters. Position, mirroring, per-figure tilt and
-// scale all vary, but the myth relations are always preserved:
+// MODE ON: two coherent characters laid out COMPACTLY inside the square panel,
+// close together (Apollo's reach almost touches Daphne), river just beneath —
+// after the Picasso reference. Position, mirroring, per-figure tilt and scale all
+// vary, but the myth relations are always preserved:
 //   - Apollo sits opposite Daphne and reaches toward her (pursuit)
 //   - arms grow from the shoulders and fork upward into laurel (transformation)
 //   - the river lies at the base
-export function placeON(rng, instances, params, canvas) {
+export function placeON(rng, instances, params, canvas, panelArg) {
   const { W, H } = canvas, S = params.scale, placed = [];
   const tmp = params.temperature != null ? params.temperature : 1;
+  const panel = panelArg || panelOf(W, H);
+  const pcx = panel.x + panel.w / 2;
 
-  // --- compositional layout (varies) ---
-  const dir = rng.next() < 0.5 ? 1 : -1;          // +1: Daphne left / Apollo right; -1: swapped
-  const cx = W * 0.5 + rng.range(-1, 1) * W * 0.05 * tmp;
-  const cy = clamp(H * 0.44 + rng.range(-1, 1) * H * 0.05 * tmp, H * 0.34, H * 0.50);
-  const gap = clamp(0.20 + Math.abs(rng.range(0, 0.12) * tmp), 0.18, 0.40) * W;
-  const daphneX = clamp(cx - dir * gap / 2, W * 0.18, W * 0.82);
-  const apolloX = clamp(cx + dir * gap / 2, W * 0.18, W * 0.82);
+  // --- compact layout (varies) ---
+  const dir = rng.next() < 0.5 ? 1 : -1;                       // +1: Daphne left / Apollo right
+  const gap = panel.w * clamp(0.22 + Math.abs(rng.range(0, 0.06) * tmp), 0.18, 0.34);
+  const cx = pcx + rng.range(-1, 1) * panel.w * 0.04 * tmp;
+  const cy = panel.y + panel.h * 0.46 + rng.range(-1, 1) * panel.h * 0.04 * tmp;
+  const inset = (f) => [panel.x + panel.w * f, panel.x + panel.w * (1 - f)];
+  const [lo, hi] = inset(0.16);
+  const daphneX = clamp(cx - dir * gap / 2, lo, hi);
+  const apolloX = clamp(cx + dir * gap / 2, lo, hi);
 
-  const sD = S * (1 + rng.range(-0.12, 0.12) * tmp);
-  const sA = S * (1 + rng.range(-0.12, 0.12) * tmp);
-  const tiltD = rng.range(-0.18, 0.18) * tmp;     // Daphne's lean
-  const tiltA = rng.range(-0.14, 0.14) * tmp;     // Apollo's lean
-  const daphneFlip = rng.next() < 0.5;            // her own facing (relations hold either way)
-  const apolloFlip = apolloX < daphneX;           // flip so his reach points toward Daphne
+  const sD = S * (1 + rng.range(-0.10, 0.10) * tmp);
+  const sA = S * (1 + rng.range(-0.10, 0.10) * tmp);
+  const tiltD = rng.range(-0.16, 0.16) * tmp;
+  const tiltA = rng.range(-0.12, 0.12) * tmp;
+  const daphneFlip = rng.next() < 0.5;
+  const apolloFlip = apolloX < daphneX;                        // face toward Daphne
 
   const daphneBase = { x: daphneX, y: cy, scale: sD, rotation: tiltD, flipX: daphneFlip };
   const apolloBase = { x: apolloX, y: cy + 6, scale: sA, rotation: tiltA, flipX: apolloFlip };
 
-  // --- Daphne cluster (attached via anchors, so coherent under any base transform) ---
+  // --- Daphne cluster (attached via anchors → coherent under any base transform) ---
   const cos = instances['daphne-cos'];
   if (cos) placed.push({ id: 'daphne-cos', transform: daphneBase, mytheme: cos });
 
@@ -62,33 +68,36 @@ export function placeON(rng, instances, params, canvas) {
     placed.push({ id: 'apollo-fallus', transform: { x: root.x, y: root.y + 8, scale: sA, rotation: tiltA, flipX: apolloFlip }, mytheme: instances['apollo-fallus'] });
   }
 
-  // --- river: always at the base ---
+  // --- river: always at the base, just beneath the figures, inside the panel ---
   if (instances['riu-peneu'])
-    placed.push({ id: 'riu-peneu', transform: { x: W * 0.5 + rng.range(-1, 1) * W * 0.04 * tmp, y: H * 0.86, scale: S, rotation: 0 }, mytheme: instances['riu-peneu'] });
+    placed.push({ id: 'riu-peneu', transform: { x: pcx + rng.range(-1, 1) * panel.w * 0.03 * tmp, y: panel.y + panel.h * 0.9, scale: S, rotation: 0 }, mytheme: instances['riu-peneu'] });
 
   return placed;
 }
 
-// MODE OFF: still two character-attempts (Daphne's mythemes cluster on one side,
-// Apollo's on the other), but the INTERNAL syntax of each is broken — mythemes are
-// scattered and mis-oriented within their cluster instead of attached at the right
-// anchors. You read "two figures", but neither resolves.
-export function placeOFF(rng, instances, params, canvas) {
+// MODE OFF: still two character-attempts — Daphne's mythemes form a TIGHT cluster
+// on one side, Apollo's on the other — but the INTERNAL syntax of each is broken:
+// mythemes are scattered and mis-oriented within their cluster instead of attached
+// at the right anchors. You read "two figures", but neither resolves.
+export function placeOFF(rng, instances, params, canvas, panelArg) {
   const { W, H } = canvas, S = params.scale, placed = [];
+  const panel = panelArg || panelOf(W, H);
+  const pcx = panel.x + panel.w / 2, pcy = panel.y + panel.h * 0.46;
   const dir = rng.next() < 0.5 ? 1 : -1;
-  const daphneX = W * 0.5 - dir * W * 0.16;
-  const apolloX = W * 0.5 + dir * W * 0.16;
-  const cy = H * 0.45;
-  const R = 52;  // how far a mytheme drifts from its cluster centre
+  const gap = panel.w * 0.24;
+  const daphneX = pcx - dir * gap / 2, apolloX = pcx + dir * gap / 2;
+  const R = panel.w * 0.06;  // tight scatter → each cluster still reads as one figure-attempt
+  const [lo, hi] = [panel.x + panel.w * 0.1, panel.x + panel.w * 0.9];
+  const [tlo, thi] = [panel.y + panel.h * 0.1, panel.y + panel.h * 0.9];
 
   const place = (id, cxp) => {
     if (!instances[id]) return;
     placed.push({
       id,
       transform: {
-        x: clamp(cxp + rng.range(-1, 1) * R, W * 0.16, W * 0.84),
-        y: clamp(cy + rng.range(-1, 1) * R, H * 0.16, H * 0.84),
-        scale: S * (0.8 + rng.range(0, 0.5)),
+        x: clamp(cxp + rng.range(-1, 1) * R, lo, hi),
+        y: clamp(pcy + rng.range(-1, 1) * R, tlo, thi),
+        scale: S * (0.85 + rng.range(0, 0.35)),
         rotation: rng.range(-Math.PI, Math.PI),
         flipX: rng.next() < 0.5,
       },
@@ -99,7 +108,7 @@ export function placeOFF(rng, instances, params, canvas) {
   for (const id of ['daphne-cos', 'daphne-pit', 'bracos-branca', 'llorer']) place(id, daphneX);
   for (const id of ['apollo-gest', 'apollo-fallus']) place(id, apolloX);
   if (instances['riu-peneu'])
-    placed.push({ id: 'riu-peneu', transform: { x: clamp(W * 0.5 + rng.range(-1, 1) * 60, W * 0.16, W * 0.84), y: H * (0.58 + rng.range(0, 0.22)), scale: S, rotation: rng.range(-0.4, 0.4) }, mytheme: instances['riu-peneu'] });
+    placed.push({ id: 'riu-peneu', transform: { x: clamp(pcx + rng.range(-1, 1) * 40, lo, hi), y: panel.y + panel.h * (0.78 + rng.range(0, 0.12)), scale: S, rotation: rng.range(-0.3, 0.3) }, mytheme: instances['riu-peneu'] });
 
   return placed;
 }

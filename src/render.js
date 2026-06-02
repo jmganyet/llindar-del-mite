@@ -12,6 +12,12 @@ export function drawComposition(p, comp, style) {
   p.strokeCap(p.ROUND);
   p.randomSeed(comp.seed);
 
+  // the embossed square panel (the leather tile)
+  if (comp.panel) {
+    p.strokeWeight(2);
+    p.rect(comp.panel.x, comp.panel.y, comp.panel.w, comp.panel.h, 10);
+  }
+
   if (comp.renderMode === 'single') {
     const path = singleLinePath(comp.placed);
     p.strokeWeight(3);

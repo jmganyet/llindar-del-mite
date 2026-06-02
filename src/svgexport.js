@@ -17,5 +17,9 @@ export function toSVG(composition, canvas, style) {
       paths += `<path d="${d.trim()}" fill="none" stroke="${style.stroke}" stroke-width="${stroke.width}" stroke-linecap="round"/>\n`;
     }
   }
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" fill="${style.bg}"/>\n${paths}</svg>`;
+  const p = composition.panel;
+  const frame = p
+    ? `<rect x="${f(p.x)}" y="${f(p.y)}" width="${f(p.w)}" height="${f(p.h)}" rx="10" fill="none" stroke="${style.stroke}" stroke-width="2"/>\n`
+    : '';
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" fill="${style.bg}"/>\n${frame}${paths}</svg>`;
 }

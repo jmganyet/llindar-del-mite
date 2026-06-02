@@ -1,9 +1,11 @@
 // src/engine.js
 import { makeRng } from './rng.js';
+import { panelOf } from './geometry.js';
 import { MYTHEMES, MYTHEME_ORDER } from './mythemes.js';
 import { placeON, placeOFF } from './grammar.js';
 
 export const CANVAS = { W: 900, H: 700 };
+export const PANEL = panelOf(CANVAS.W, CANVAS.H);
 
 const DEPENDS = {
   'daphne-pit': ['daphne-cos'],
@@ -31,7 +33,7 @@ export function defaultState() {
     mode: 'on',
     renderMode: 'multi',
     active: Object.fromEntries(MYTHEME_ORDER.map(id => [id, true])),
-    params: { count: 7, jitter: 0, scatter: 0, scale: 2.2, temperature: 1 },
+    params: { count: 7, jitter: 0, scatter: 0, scale: 2.6, temperature: 1 },
   };
 }
 
@@ -73,8 +75,8 @@ export function buildComposition(state) {
   for (const id of ids) instances[id] = MYTHEMES[id](rng, state.params);
 
   const place = state.mode === 'on' ? placeON : placeOFF;
-  let placed = place(rng, instances, state.params, CANVAS);
+  let placed = place(rng, instances, state.params, CANVAS, PANEL);
   placed = applyScatter(rng, placed, state.params);
 
-  return { seed: state.seed, mode: state.mode, renderMode: state.renderMode, jitter: state.params.jitter, placed };
+  return { seed: state.seed, mode: state.mode, renderMode: state.renderMode, jitter: state.params.jitter, panel: PANEL, placed };
 }

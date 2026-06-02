@@ -87,19 +87,26 @@ function llorer(rng, params) {
 }
 
 function apolloGest(rng, params) {
-  // Apollo as a leaning pursuer: torso+stride and an arm reaching left toward Daphne (no head)
-  const reach = Math.max(20, vary(rng, 42, 8, params));
-  const bodyH = Math.max(20, vary(rng, 35, 8, params));
+  // After the Picasso reference: a tall curved stroke rising to a hook at the top,
+  // with diagonal sweeps reaching toward Daphne (the pursuit). No head.
+  const h = Math.max(28, vary(rng, 52, 9, params));     // height of the standing stroke
+  const reach = Math.max(18, vary(rng, 40, 8, params)); // how far the sweeps reach
+  const hook = Math.max(4, vary(rng, 8, 2, params));    // size of the top hook
   const strokes = [];
-  // torso leaning forward into a stride/leg
+  // tall body stroke rising on the right, ending in a small hook
   strokes.push({ width: 3, segments: [
-    { p0: { x: 0, y: -bodyH }, c1: { x: 7, y: -bodyH * 0.5 }, c2: { x: 11, y: -4 }, p1: { x: 16, y: bodyH * 0.55 } },
+    { p0: { x: 0, y: 0 }, c1: { x: 4, y: -h * 0.4 }, c2: { x: -2, y: -h * 0.8 }, p1: { x: 2, y: -h } },
+    { p0: { x: 2, y: -h }, c1: { x: 2 + hook, y: -h - hook }, c2: { x: 2 + hook * 1.6, y: -h + hook * 0.4 }, p1: { x: 2 + hook * 0.6, y: -h + hook * 1.6 } },
   ] });
-  // reaching arm toward Daphne (leftward)
-  strokes.push({ width: 3, segments: [
-    { p0: { x: 0, y: -bodyH * 0.78 }, c1: { x: -reach * 0.4, y: -bodyH * 0.78 - 5 }, c2: { x: -reach * 0.8, y: -bodyH * 0.42 }, p1: { x: -reach, y: -bodyH * 0.36 } },
+  // two diagonal sweeps reaching toward Daphne (leftward/down)
+  const sweepY = -h * 0.55;
+  strokes.push({ width: 2.5, segments: [
+    { p0: { x: 0, y: sweepY }, c1: { x: -reach * 0.4, y: sweepY + 2 }, c2: { x: -reach * 0.8, y: sweepY + 6 }, p1: { x: -reach, y: sweepY + 10 } },
   ] });
-  const anchors = { shoulder: { x: 0, y: -bodyH * 0.78 }, hand: { x: -reach, y: -bodyH * 0.36 } };
+  strokes.push({ width: 2.5, segments: [
+    { p0: { x: 2, y: sweepY + 20 }, c1: { x: -reach * 0.35, y: sweepY + 22 }, c2: { x: -reach * 0.75, y: sweepY + 26 }, p1: { x: -reach * 0.95, y: sweepY + 30 } },
+  ] });
+  const anchors = { shoulder: { x: 0, y: sweepY }, hand: { x: -reach, y: sweepY + 10 }, top: { x: 2, y: -h } };
   return { id: 'apollo-gest', strokes, anchors, bounds: boundsOf(strokes) };
 }
 
