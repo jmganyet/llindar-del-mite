@@ -1,0 +1,116 @@
+/* El llindar del mite — pyrography / leather theme
+   Palette and spacing informed by ui-ux-pro-max:
+   - canvas is the hero; the side panel stays quiet and warm
+   - 8px spacing rhythm, visible focus rings, 150-300ms transitions
+   - cursor-pointer + hover/active states, prefers-reduced-motion honoured */
+:root {
+  --bg: #c8a062;       /* leather / pyrography surface (canvas tone) */
+  --ink: #4a2c14;      /* burnt-in dark brown ink */
+  --panel: #d8b884;    /* quieter panel surface */
+  --panel-edge: #a8824a;
+  --field: #e6cfa0;    /* inset control surface */
+  --ink-soft: #6b4527; /* secondary ink for labels */
+  --space: 8px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: var(--ink);
+  background: #b89055;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Canvas is the hero: centred, with breathing room. */
+#canvas-holder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--space) * 2);
+}
+#canvas-holder canvas {
+  max-width: 100%;
+  height: auto;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .25);
+  border-radius: 2px;
+}
+
+/* Quiet side panel on the right. */
+#controls {
+  width: 288px;
+  flex: 0 0 288px;
+  background: var(--panel);
+  border-left: 1px solid var(--panel-edge);
+  padding: calc(var(--space) * 2);
+  height: 100vh;
+  overflow-y: auto;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, .15);
+}
+
+#controls .group { margin-bottom: calc(var(--space) * 2.5); }
+
+#controls h3 {
+  margin: 0 0 var(--space);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--panel-edge);
+  padding-bottom: calc(var(--space) / 2);
+}
+
+#controls button {
+  display: block;
+  width: 100%;
+  margin: calc(var(--space) / 2) 0;
+  padding: var(--space) calc(var(--space) * 1.25);
+  background: var(--bg);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: background-color .18s ease, color .18s ease, transform .12s ease;
+}
+#controls button:hover { background: var(--ink); color: var(--bg); }
+#controls button:active { transform: translateY(1px); }
+
+#controls label.toggle {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--space) / 2);
+  padding: calc(var(--space) / 2) 0;
+  font-size: 14px;
+  cursor: pointer;
+}
+#controls label.toggle input { cursor: pointer; accent-color: var(--ink); }
+
+#controls .slider { margin: var(--space) 0; }
+#controls .slider label {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-bottom: calc(var(--space) / 2);
+}
+#controls .slider input {
+  width: 100%;
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+
+/* Visible focus ring for keyboard-first use. */
+#controls button:focus-visible,
+#controls input:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #controls button { transition: none; }
+  #controls button:active { transform: none; }
+}
