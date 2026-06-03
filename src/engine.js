@@ -3,6 +3,7 @@ import { makeRng } from './rng.js';
 import { panelOf } from './geometry.js';
 import { MYTHEMES, MYTHEME_ORDER } from './mythemes.js';
 import { placeON, placeOFF } from './grammar.js';
+import { referencePlaced } from './reference.js';
 
 export const CANVAS = { W: 900, H: 700 };
 export const PANEL = panelOf(CANVAS.W, CANVAS.H);
@@ -30,6 +31,9 @@ function closeDeps(ids, active) {
 export function defaultState() {
   return {
     seed: 1,
+    // the very first composition is the exact Picasso reference; pressing
+    // "generate" turns this off and the generative system takes over.
+    reference: true,
     mode: 'on',
     renderMode: 'multi',
     // llorer (explicit laurel) is off by default — the bare branches carry the
@@ -62,6 +66,10 @@ function applyScatter(rng, placed, params) {
 }
 
 export function buildComposition(state) {
+  // first load: the fixed, hand-traced Picasso reference
+  if (state.reference) {
+    return { seed: state.seed, mode: 'reference', renderMode: state.renderMode, jitter: 0, panel: PANEL, placed: referencePlaced(PANEL) };
+  }
   const rng = makeRng(state.seed);
   let ids = MYTHEME_ORDER.filter(id => state.active[id]);
   // the number of mythemes present drifts around the slider value, scaled by

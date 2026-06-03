@@ -15,19 +15,21 @@ const sketch = (p) => {
     c.parent('canvas-holder');
     p.noLoop();
     setupUI(state, {
-      regenerate, rebuild,
+      regenerate, rebuild, reference: showReference,
       exportPNG: () => p.saveCanvas('llindar-' + state.seed, 'png'),
       exportSVG,
       batch,
     });
     draw();
+    window.__rendered = true;   // signal for the headless harness
   };
 
   function draw() {
     if (batchMode) { drawBatch(); return; }
     drawComposition(p, comp, style);
     p.push(); p.noStroke(); p.fill(style.stroke); p.textSize(12);
-    p.text(`seed ${state.seed} · ${state.mode} · ${state.renderMode}`, 12, CANVAS.H - 12); p.pop();
+    const label = state.reference ? 'referència Picasso' : `seed ${state.seed} · ${state.mode}`;
+    p.text(`${label} · ${state.renderMode}`, 12, CANVAS.H - 12); p.pop();
   }
 
   function drawBatch() {
@@ -49,7 +51,8 @@ const sketch = (p) => {
   }
 
   function rebuild() { batchMode = false; comp = buildComposition(state); draw(); }
-  function regenerate() { batchMode = false; state.seed = Math.floor(Math.random() * 1e9); rebuild(); }
+  function regenerate() { batchMode = false; state.reference = false; state.seed = Math.floor(Math.random() * 1e9); rebuild(); }
+  function showReference() { batchMode = false; state.reference = true; rebuild(); }
   function batch() { batchMode = true; draw(); }
   function exportSVG() {
     const blob = new Blob([toSVG(comp, CANVAS, style)], { type: 'image/svg+xml' });

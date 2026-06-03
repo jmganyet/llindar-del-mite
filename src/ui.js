@@ -49,6 +49,7 @@ export function setupUI(state, callbacks) {
   slider('scale', 'Escala', 1, 3.5, 0.1);
 
   const gActions = group('Accions');
+  if (callbacks.reference) button(gActions, 'Picasso (referència)', callbacks.reference);
   button(gActions, 'Generar (espai)', callbacks.regenerate);
   button(gActions, 'Exporta PNG (S)', callbacks.exportPNG);
   button(gActions, 'Exporta SVG', callbacks.exportSVG);

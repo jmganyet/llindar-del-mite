@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="ca"><head><meta charset="utf-8"><title>ref</title>
+<style>html,body{margin:0;background:#b89055}</style></head>
+<body>
+<!-- Full-size render of the fixed Picasso reference, for tracing accuracy. -->
+<script src="../vendor/p5.min.js"></script>
+<script type="module">
+import { defaultState, buildComposition, CANVAS } from '../src/engine.js';
+import { drawComposition } from '../src/render.js';
+const s = defaultState();          // reference:true by default
+const comp = buildComposition(s);
+const style = { bg: '#c8a062', stroke: '#4a2c14' };
+new p5((p) => { p.setup = () => { p.createCanvas(CANVAS.W, CANVAS.H); p.noLoop(); drawComposition(p, comp, style); window.__rendered = true; }; });
+</script>
+</body></html>

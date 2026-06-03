@@ -27,6 +27,7 @@ new p5((p) => {
     for (let i = 0; i < n; i++) {
       const s = defaultState();
       s.seed = baseSeed + i;
+      s.reference = q.get('ref') === '1' && i === 0;  // first cell = exact reference
       if (q.get('mode')) s.mode = q.get('mode');
       if (q.get('render')) s.renderMode = q.get('render');
       if (q.get('temp')) s.params.temperature = +q.get('temp');

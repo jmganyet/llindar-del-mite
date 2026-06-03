@@ -4,22 +4,32 @@ import assert from 'node:assert/strict';
 import { defaultState, buildComposition, CANVAS } from '../src/engine.js';
 import { MYTHEME_ORDER } from '../src/mythemes.js';
 
+// a generative state — the default now starts on the fixed Picasso reference,
+// so tests of the generative engine must switch it off explicitly.
+const gen = () => { const s = defaultState(); s.reference = false; return s; };
+
 test('default state is ON/multi with every mytheme active except the optional laurel', () => {
-  const s = defaultState();
+  const s = gen();
   assert.equal(s.mode, 'on');
   assert.equal(s.renderMode, 'multi');
   for (const id of MYTHEME_ORDER) assert.equal(s.active[id], id !== 'llorer');
 });
 
+test('the first composition is the fixed Picasso reference (Daphne, Apollo, Peneu)', () => {
+  const comp = buildComposition(defaultState());
+  assert.equal(comp.mode, 'reference');
+  assert.deepEqual(comp.placed.map((p) => p.id), ['daphne-ref', 'apollo-ref', 'peneu-ref']);
+});
+
 test('buildComposition is deterministic for the same state', () => {
-  const s = defaultState();
+  const s = gen();
   const a = buildComposition(s).placed.map(p => ({ id: p.id, t: p.transform }));
   const b = buildComposition(s).placed.map(p => ({ id: p.id, t: p.transform }));
   assert.deepEqual(a, b);
 });
 
 test('toggling a mytheme off removes it from the composition', () => {
-  const s = defaultState();
+  const s = gen();
   s.active['llorer'] = false;
   const comp = buildComposition(s);
   assert.ok(!comp.placed.some(p => p.id === 'llorer'));
@@ -28,7 +38,7 @@ test('toggling a mytheme off removes it from the composition', () => {
 test('count dial limits how many mythemes are drawn', () => {
   // temperature 0 freezes the count drift, so the dial is exact (the sample size
   // equals `count`; dependency closure may add active parents on top).
-  const s = defaultState();
+  const s = gen();
   s.params.count = 3;
   s.params.temperature = 0;
   const comp = buildComposition(s);
@@ -41,14 +51,14 @@ test('temperature drift can change the number of mythemes present', () => {
   // with temperature high, the rendered mytheme count varies across seeds
   const counts = new Set();
   for (let seed = 1; seed <= 40; seed++) {
-    const s = defaultState(); s.seed = seed; s.params.count = 5; s.params.temperature = 2;
+    const s = gen(); s.seed = seed; s.params.count = 5; s.params.temperature = 2;
     counts.add(new Set(buildComposition(s).placed.map(p => p.id)).size);
   }
   assert.ok(counts.size > 1, 'presence should vary across generations at high temperature');
 });
 
 test('composition carries seed, mode, renderMode and jitter', () => {
-  const s = defaultState();
+  const s = gen();
   s.params.jitter = 4;
   const comp = buildComposition(s);
   assert.equal(comp.seed, s.seed);
@@ -58,8 +68,8 @@ test('composition carries seed, mode, renderMode and jitter', () => {
 });
 
 test('changing seed changes the composition', () => {
-  const s1 = defaultState(); s1.seed = 1;
-  const s2 = defaultState(); s2.seed = 2;
+  const s1 = gen(); s1.seed = 1;
+  const s2 = gen(); s2.seed = 2;
   assert.notDeepEqual(
     buildComposition(s1).placed.map(p => p.transform),
     buildComposition(s2).placed.map(p => p.transform),
@@ -72,7 +82,7 @@ test('CANVAS has expected dimensions', () => {
 
 test('compositions never render a child mytheme without its parent', () => {
   for (let seed = 1; seed <= 200; seed++) {
-    const s = defaultState(); s.seed = seed; s.params.count = 4;
+    const s = gen(); s.seed = seed; s.params.count = 4;
     const ids = new Set(buildComposition(s).placed.map((p) => p.id));
     if (ids.has('llorer')) assert.ok(ids.has('bracos-branca'), `seed ${seed}: llorer without branch`);
     if (ids.has('bracos-branca')) assert.ok(ids.has('daphne-cos'), `seed ${seed}: branch without cos`);
