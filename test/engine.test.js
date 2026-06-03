@@ -4,11 +4,11 @@ import assert from 'node:assert/strict';
 import { defaultState, buildComposition, CANVAS } from '../src/engine.js';
 import { MYTHEME_ORDER } from '../src/mythemes.js';
 
-test('default state activates all mythemes in ON/multi', () => {
+test('default state is ON/multi with every mytheme active except the optional laurel', () => {
   const s = defaultState();
   assert.equal(s.mode, 'on');
   assert.equal(s.renderMode, 'multi');
-  for (const id of MYTHEME_ORDER) assert.equal(s.active[id], true);
+  for (const id of MYTHEME_ORDER) assert.equal(s.active[id], id !== 'llorer');
 });
 
 test('buildComposition is deterministic for the same state', () => {

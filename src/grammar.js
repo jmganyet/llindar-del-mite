@@ -18,11 +18,13 @@ export function placeON(rng, instances, params, canvas, panelArg) {
 
   // --- compact layout (varies) ---
   const dir = rng.next() < 0.5 ? 1 : -1;                       // +1: Daphne left / Apollo right
-  const gap = panel.w * clamp(0.22 + Math.abs(rng.range(0, 0.06) * tmp), 0.18, 0.34);
+  // very tight gap — figures share the centre, wide Daphne sweep crosses into Apollo's space
+  const gap = panel.w * clamp(0.10 + Math.abs(rng.range(0, 0.04) * tmp), 0.08, 0.16);
   const cx = pcx + rng.range(-1, 1) * panel.w * 0.04 * tmp;
-  const cy = panel.y + panel.h * 0.50 + rng.range(-1, 1) * panel.h * 0.04 * tmp;
+  // figure anchor sits at 45% of plaque height — leaves river strip clear at base
+  const cy = panel.y + panel.h * 0.45 + rng.range(-1, 1) * panel.h * 0.03 * tmp;
   const inset = (f) => [panel.x + panel.w * f, panel.x + panel.w * (1 - f)];
-  const [lo, hi] = inset(0.16);
+  const [lo, hi] = inset(0.12);
   const daphneX = clamp(cx - dir * gap / 2, lo, hi);
   const apolloX = clamp(cx + dir * gap / 2, lo, hi);
 
@@ -30,7 +32,9 @@ export function placeON(rng, instances, params, canvas, panelArg) {
   const sA = S * (1 + rng.range(-0.10, 0.10) * tmp);
   const tiltD = rng.range(-0.16, 0.16) * tmp;
   const tiltA = rng.range(-0.12, 0.12) * tmp;
-  const daphneFlip = rng.next() < 0.5;
+  // Daphne's J-arc must always curve OUTWARD (away from Apollo) so the
+  // left/right reading is always clear — flip tracks the layout direction.
+  const daphneFlip = dir === -1;   // right-side Daphne flips so arc still opens left
   const apolloFlip = apolloX < daphneX;                        // face toward Daphne
 
   const daphneBase = { x: daphneX, y: cy, scale: sD, rotation: tiltD, flipX: daphneFlip };
@@ -68,9 +72,9 @@ export function placeON(rng, instances, params, canvas, panelArg) {
     placed.push({ id: 'apollo-fallus', transform: { x: root.x, y: root.y + 8, scale: sA, rotation: tiltA, flipX: apolloFlip }, mytheme: instances['apollo-fallus'] });
   }
 
-  // --- river: always at the base, just beneath the figures, inside the panel ---
+  // --- river: tight baseline just beneath the figure mass ---
   if (instances['riu-peneu'])
-    placed.push({ id: 'riu-peneu', transform: { x: pcx + rng.range(-1, 1) * panel.w * 0.03 * tmp, y: panel.y + panel.h * 0.9, scale: S, rotation: 0 }, mytheme: instances['riu-peneu'] });
+    placed.push({ id: 'riu-peneu', transform: { x: pcx + rng.range(-1, 1) * panel.w * 0.02 * tmp, y: panel.y + panel.h * 0.84, scale: S * 0.7, rotation: 0 }, mytheme: instances['riu-peneu'] });
 
   return placed;
 }

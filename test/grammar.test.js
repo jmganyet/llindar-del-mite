@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { makeRng } from '../src/rng.js';
 import { MYTHEMES, MYTHEME_ORDER } from '../src/mythemes.js';
 import { placeON, placeOFF } from '../src/grammar.js';
-import { resolveAnchor } from '../src/geometry.js';
+import { resolveAnchor, panelOf } from '../src/geometry.js';
 
 const PARAMS = { count: 7, jitter: 0, scatter: 0, scale: 2.2 };
 const CANVAS = { W: 900, H: 700 };
@@ -25,12 +25,14 @@ test('placeON places every active mytheme (laurel once per branch tip)', () => {
   assert.equal(laurels, inst['bracos-branca'].tipNames.length);
 });
 
-test('Daphne and Apollo sit on opposite sides, well separated (either mirroring)', () => {
+test('Daphne and Apollo sit on opposite sides of the plaque centre (compact fusion layout)', () => {
+  const panel = panelOf(CANVAS.W, CANVAS.H);
+  const minGap = panel.w * 0.06;  // tight but distinguishable — Picasso-style overlap
   for (let seed = 1; seed <= 50; seed++) {
     const placed = placeON(makeRng(seed), allInstances(seed), PARAMS, CANVAS);
     const apollo = placed.find(p => p.id === 'apollo-gest');
     const daphne = placed.find(p => p.id === 'daphne-cos');
-    assert.ok(Math.abs(apollo.transform.x - daphne.transform.x) > CANVAS.W * 0.1, `seed ${seed}: pair too close`);
+    assert.ok(Math.abs(apollo.transform.x - daphne.transform.x) > minGap, `seed ${seed}: pair too close`);
   }
 });
 

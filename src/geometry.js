@@ -22,9 +22,11 @@ export function cubicPoint(seg, u) {
   };
 }
 
-// the square leather panel the scene is drawn inside (centred inset of the canvas)
+// the square clay plaque centred inside the terracotta field.
+// In the Picasso reference the plaque is ~38% of the total image height,
+// with a thick gilt frame (~13%) leaving the terracotta field visible around it.
 export function panelOf(W, H) {
-  const s = Math.min(W, H) * 0.78;
+  const s = Math.min(W, H) * 0.38;
   return { x: (W - s) / 2, y: (H - s) / 2, w: s, h: s };
 }
 

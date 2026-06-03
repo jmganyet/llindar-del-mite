@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ca"><head><meta charset="utf-8"><title>grid</title>
+<style>html,body{margin:0;background:#b89055}</style></head>
+<body>
+<!-- Contact-sheet harness for headless visual iteration.
+     Renders an NxN grid of compositions in the real p5 pipeline, then sets
+     window.__rendered so tools/shoot.mjs knows the capture is ready.
+     usage: grid.html#mode=on&temp=1&render=multi&cols=3&n=9&seed=1 -->
+<script src="../vendor/p5.min.js"></script>
+<script type="module">
+import { defaultState, buildComposition, CANVAS } from '../src/engine.js';
+import { drawComposition } from '../src/render.js';
+
+const q = new URLSearchParams(location.hash.slice(1));
+const cols = +(q.get('cols') || 3);
+const n = +(q.get('n') || cols * cols);
+const baseSeed = +(q.get('seed') || 1);
+const cellW = 340, cellH = Math.round(cellW * 700 / 900), pad = 8;  // preserve canvas aspect
+const rows = Math.ceil(n / cols);
+const style = { bg: '#c8a062', stroke: '#4a2c14' };
+
+new p5((p) => {
+  p.setup = () => {
+    p.createCanvas(cols * cellW + (cols + 1) * pad, rows * cellH + (rows + 1) * pad);
+    p.noLoop();
+    p.background('#b89055');
+    for (let i = 0; i < n; i++) {
+      const s = defaultState();
+      s.seed = baseSeed + i;
+      if (q.get('mode')) s.mode = q.get('mode');
+      if (q.get('render')) s.renderMode = q.get('render');
+      if (q.get('temp')) s.params.temperature = +q.get('temp');
+      if (q.has('laurel')) s.active['llorer'] = q.get('laurel') === '1';
+      const comp = buildComposition(s);
+      const pg = p.createGraphics(CANVAS.W, CANVAS.H);
+      drawComposition(pg, comp, style);
+      const cx = pad + (i % cols) * (cellW + pad);
+      const cy = pad + Math.floor(i / cols) * (cellH + pad);
+      p.image(pg, cx, cy, cellW, cellH);
+      pg.remove();
+      p.push(); p.noStroke(); p.fill('#4a2c14'); p.textSize(13);
+      p.text('seed ' + s.seed, cx + 6, cy + cellH - 8); p.pop();
+    }
+    window.__rendered = true;
+  };
+});
+</script>
+</body></html>

@@ -7,32 +7,50 @@ const temp = (params) => (params && params.temperature != null ? params.temperat
 const vary = (rng, mid, spread, params) => mid + rng.range(-1, 1) * spread * temp(params);
 
 function daphneCos(rng, params) {
-  const hip = Math.max(6, vary(rng, 13, 4, params));     // hip outward swell
-  const waist = Math.max(1, vary(rng, 4.5, 2, params));  // waist pinch
-  const sway = vary(rng, 0, 5, params);                  // lateral sway of the figure
+  // The dominant gesture in the Picasso plaque: a large reversed-J arc.
+  // Back contour swings FAR LEFT then comes back toward centre at the base.
+  // Front contour is a shorter stroke that stops mid-body — it does NOT
+  // close back to the hip, preventing the crossing/loop that ruins the gesture.
+  const hip = Math.max(8, vary(rng, 20, 5, params));
+  const waist = Math.max(1, vary(rng, 4, 1.5, params));
+  const sway = vary(rng, 0, 4, params);   // subtle lateral offset of the whole figure
   const strokes = [];
-  // back/spine contour: shoulder -> waist (in) -> hip (out) -> leg merging into trunk/root
-  strokes.push({ width: 3, segments: [
-    { p0: { x: sway, y: -52 }, c1: { x: -waist + sway, y: -40 }, c2: { x: -waist, y: -26 }, p1: { x: -waist * 0.5, y: -12 } },
-    { p0: { x: -waist * 0.5, y: -12 }, c1: { x: -hip * 0.5, y: 2 }, c2: { x: -hip, y: 14 }, p1: { x: -hip * 0.6, y: 32 } },
-    { p0: { x: -hip * 0.6, y: 32 }, c1: { x: -hip * 0.3, y: 44 }, c2: { x: -2, y: 52 }, p1: { x: vary(rng, 0, 4, params), y: 60 } },
+
+  // back contour: ONE smooth J-arc from shoulder to root — the dominant gesture.
+  // Swings to maximum hip extent at mid-height, returns to near-centre at the base.
+  strokes.push({ width: 3.5, segments: [
+    { p0: { x: sway,   y: -52 },
+      c1: { x: sway - waist, y: -22 },
+      c2: { x: -hip,   y: -2 },
+      p1: { x: -hip,   y: 16 } },
+    { p0: { x: -hip,   y: 16 },
+      c1: { x: -hip * 0.65, y: 34 },
+      c2: { x: -hip * 0.15, y: 50 },
+      p1: { x: vary(rng, 3, 4, params), y: 60 } },
   ] });
-  // front contour: throat -> bust -> belly -> back to hip
-  strokes.push({ width: 2, segments: [
-    { p0: { x: sway, y: -48 }, c1: { x: waist + 5, y: -38 }, c2: { x: waist + 3, y: -22 }, p1: { x: waist * 0.5, y: -12 } },
-    { p0: { x: waist * 0.5, y: -12 }, c1: { x: hip * 0.7, y: 4 }, c2: { x: hip * 0.6, y: 22 }, p1: { x: -hip * 0.6, y: 32 } },
+
+  // front contour: short chest/torso stroke on the RIGHT side.
+  // Ends at y≈8, well above the y-range where the back arc swings back,
+  // so the two strokes can NEVER cross.
+  strokes.push({ width: 2.5, segments: [
+    { p0: { x: sway + 3, y: -46 },
+      c1: { x: waist + 7, y: -28 },
+      c2: { x: waist + 5, y: -10 },
+      p1: { x: waist,     y:  8 } },
   ] });
-  const anchors = { shoulder: { x: sway, y: -50 }, chest: { x: waist + 1, y: -28 }, hip: { x: -hip * 0.6, y: 32 } };
+
+  const anchors = { shoulder: { x: sway, y: -50 }, chest: { x: waist + 3, y: -26 }, hip: { x: -hip, y: 16 } };
   return { id: 'daphne-cos', strokes, anchors, bounds: boundsOf(strokes) };
 }
 
 function daphnePit(rng, params) {
   const r = Math.max(3, vary(rng, 6, 1.5, params));
-  // each breast: a rounded under-curve
-  const breast = (cx) => ([{ p0: { x: cx - r, y: -r * 0.4 }, c1: { x: cx - r, y: r * 0.8 }, c2: { x: cx + r, y: r * 0.8 }, p1: { x: cx + r, y: -r * 0.2 } }]);
+  // a SINGLE abstract mark — one short hooked curve, not an anatomical pair.
+  // Reads as a sign for the breast, the way Picasso notes it with one stroke.
   const strokes = [
-    { width: 2, segments: breast(-r * 0.7) },
-    { width: 2, segments: breast(r * 1.0) },
+    { width: 2, segments: [
+      { p0: { x: -r * 0.5, y: -r * 0.4 }, c1: { x: r * 0.25, y: -r * 0.2 }, c2: { x: r * 0.5, y: r * 0.5 }, p1: { x: r * 0.05, y: r * 0.75 } },
+    ] },
   ];
   const anchors = { attach: { x: 0, y: 0 } };
   return { id: 'daphne-pit', strokes, anchors, bounds: boundsOf(strokes) };
@@ -99,15 +117,21 @@ function apolloGest(rng, params) {
     { p0: { x: 0, y: 0 }, c1: { x: 4, y: -h * 0.4 }, c2: { x: -2, y: -h * 0.8 }, p1: { x: 2, y: -h } },
     { p0: { x: 2, y: -h }, c1: { x: 2 + hook, y: -h - hook }, c2: { x: 2 + hook * 1.6, y: -h + hook * 0.4 }, p1: { x: 2 + hook * 0.6, y: -h + hook * 1.6 } },
   ] });
-  // two diagonal sweeps reaching toward Daphne (leftward/down)
+  // arm sweeping from shoulder DOWN-toward-Daphne (diagonal, not horizontal)
+  // so it reads as a pursuit gesture, not a shelf.
   const sweepY = -h * 0.55;
+  const hx = -reach, hy = sweepY + reach * 0.38;   // angled downward ~21°
   strokes.push({ width: 2.5, segments: [
-    { p0: { x: 0, y: sweepY }, c1: { x: -reach * 0.4, y: sweepY + 2 }, c2: { x: -reach * 0.8, y: sweepY + 6 }, p1: { x: -reach, y: sweepY + 10 } },
+    { p0: { x: 2, y: sweepY }, c1: { x: -reach * 0.4, y: sweepY + reach * 0.10 }, c2: { x: -reach * 0.8, y: sweepY + reach * 0.26 }, p1: { x: hx, y: hy } },
   ] });
-  strokes.push({ width: 2.5, segments: [
-    { p0: { x: 2, y: sweepY + 20 }, c1: { x: -reach * 0.35, y: sweepY + 22 }, c2: { x: -reach * 0.75, y: sweepY + 26 }, p1: { x: -reach * 0.95, y: sweepY + 30 } },
-  ] });
-  const anchors = { shoulder: { x: 0, y: sweepY }, hand: { x: -reach, y: sweepY + 10 }, top: { x: 2, y: -h } };
+  const finger = (fa) => ({ width: 1.6, segments: [
+    { p0: { x: hx, y: hy },
+      c1: { x: hx + Math.cos(fa) * 4, y: hy + Math.sin(fa) * 4 },
+      c2: { x: hx + Math.cos(fa) * 8, y: hy + Math.sin(fa) * 8 },
+      p1: { x: hx + Math.cos(fa) * 11, y: hy + Math.sin(fa) * 11 } }] });
+  strokes.push(finger(Math.PI * 0.90 + vary(rng, 0, 0.1, params)));
+  strokes.push(finger(Math.PI * 1.14 + vary(rng, 0, 0.1, params)));
+  const anchors = { shoulder: { x: 0, y: sweepY }, hand: { x: hx, y: hy }, top: { x: 2, y: -h } };
   return { id: 'apollo-gest', strokes, anchors, bounds: boundsOf(strokes) };
 }
 
@@ -120,7 +144,7 @@ function apolloFallus(rng, params) {
 }
 
 function riuPeneu(rng, params) {
-  const n = rng.int(1, 2), w = Math.max(80, vary(rng, 150, 30, params));
+  const n = 2, w = Math.max(80, vary(rng, 150, 25, params));  // always 2 lines, like the Picasso
   const wob = Math.max(1, vary(rng, 5, 3, params));
   const strokes = [];
   for (let i = 0; i < n; i++) {
