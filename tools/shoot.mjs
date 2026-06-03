@@ -1,12 +1,20 @@
-// tools/shoot.mjs — zero-dependency headless screenshotter for visual iteration.
+// tools/shoot.mjs — zero-dependency screenshotter + console capture for visual
+// iteration and self-debugging.
 //
-// Serves the repo over HTTP (ES modules need http, not file://), launches the
-// installed Chrome in headless mode, navigates to a page, waits for the render
-// signal (window.__rendered) and captures a PNG. Drives Chrome over the
-// DevTools Protocol using Node's built-in WebSocket + fetch (Node >= 22).
+// Serves the repo over HTTP (ES modules need http, not file://), drives Chrome
+// over the DevTools Protocol (Node built-in WebSocket + fetch, Node >= 22),
+// navigates to a page, waits for the render signal (window.__rendered),
+// captures a PNG, AND prints every browser console message + uncaught
+// exception to stdout — so a broken render shows its JS error, not a blank PNG.
 //
 //   node tools/shoot.mjs test/grid.html#mode=on&temp=1 shots/on.png
 //   node tools/shoot.mjs "test/grid.html#mode=off"      shots/off.png
+//
+// Headless by default (spawns its own Chrome). To instead attach to a Chrome
+// you already have open (so you can watch the tab live), launch that Chrome with
+//   /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
+// then run with CHROME_REMOTE set:
+//   CHROME_REMOTE=9222 node tools/shoot.mjs "test/grid.html#mode=on" shots/x.png
 //
 // Defaults: page = test/grid.html, out = test/shots/shot.png
 import { createServer } from 'node:http';
@@ -36,23 +44,32 @@ await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const port = server.address().port;
 const url = `http://127.0.0.1:${port}/${page}`;
 
-// --- launch headless Chrome with remote debugging -------------------------
-const profile = join(ROOT, 'test/.chrome-profile');
-const chrome = spawn(CHROME, [
-  '--headless=new', '--remote-debugging-port=0', '--no-first-run', '--no-default-browser-check',
-  '--hide-scrollbars', '--force-device-scale-factor=2', `--user-data-dir=${profile}`, 'about:blank',
-], { stdio: ['ignore', 'ignore', 'pipe'] });
-
-// Chrome prints "DevTools listening on ws://..." to stderr — grab the port.
-const wsBrowser = await new Promise((res, rej) => {
-  let buf = '';
-  const to = setTimeout(() => rej(new Error('Chrome did not start')), 15000);
-  chrome.stderr.on('data', (d) => {
-    buf += d;
-    const m = buf.match(/ws:\/\/[^\s]+/);
-    if (m) { clearTimeout(to); res(m[0]); }
+// --- get a browser-level CDP endpoint -------------------------------------
+// either attach to a Chrome you already have open (CHROME_REMOTE=<port>),
+// or spawn a fresh headless one and read its ws endpoint from stderr.
+let chrome = null;
+let wsBrowser;
+if (process.env.CHROME_REMOTE) {
+  const port = process.env.CHROME_REMOTE;
+  const info = await (await fetch(`http://127.0.0.1:${port}/json/version`)).json();
+  wsBrowser = info.webSocketDebuggerUrl;
+  console.log(`🔗 attached to Chrome on :${port}`);
+} else {
+  const profile = join(ROOT, 'test/.chrome-profile');
+  chrome = spawn(CHROME, [
+    '--headless=new', '--remote-debugging-port=0', '--no-first-run', '--no-default-browser-check',
+    '--hide-scrollbars', '--force-device-scale-factor=2', `--user-data-dir=${profile}`, 'about:blank',
+  ], { stdio: ['ignore', 'ignore', 'pipe'] });
+  wsBrowser = await new Promise((res, rej) => {
+    let buf = '';
+    const to = setTimeout(() => rej(new Error('Chrome did not start')), 15000);
+    chrome.stderr.on('data', (d) => {
+      buf += d;
+      const m = buf.match(/ws:\/\/[^\s]+/);
+      if (m) { clearTimeout(to); res(m[0]); }
+    });
   });
-});
+}
 
 // --- minimal CDP client over WebSocket ------------------------------------
 function cdp(wsUrl) {
@@ -86,6 +103,24 @@ const S = sessionId;
 
 await browser.send('Page.enable', {}, S);
 await browser.send('Runtime.enable', {}, S);
+await browser.send('Log.enable', {}, S);
+
+// collect console output + uncaught exceptions so failures are visible to me
+const logs = [];
+browser.on((m) => {
+  if (m.sessionId !== S) return;
+  if (m.method === 'Runtime.consoleAPICalled') {
+    const text = (m.params.args || []).map((a) => a.value ?? a.description ?? a.unserializableValue ?? a.type).join(' ');
+    logs.push(`[console.${m.params.type}] ${text}`);
+  } else if (m.method === 'Runtime.exceptionThrown') {
+    const e = m.params.exceptionDetails;
+    logs.push(`[exception] ${e.exception?.description || e.text}`);
+  } else if (m.method === 'Log.entryAdded') {
+    const en = m.params.entry;
+    if (/favicon\.ico/.test(en.url || '')) return;  // harmless browser noise
+    if (en.level === 'error' || en.level === 'warning') logs.push(`[${en.level}] ${en.text}${en.url ? ' @ ' + en.url : ''}`);
+  }
+});
 
 // navigate and wait for load
 const loaded = new Promise((r) => browser.on((m) => { if (m.method === 'Page.loadEventFired' && m.sessionId === S) r(); }));
@@ -107,7 +142,16 @@ await mkdir(dirname(out), { recursive: true });
 await writeFile(out, Buffer.from(data, 'base64'));
 console.log('📸', out);
 
+if (logs.length) {
+  console.log(`— browser console (${logs.length}) —`);
+  for (const l of logs) console.log('  ' + l);
+} else {
+  console.log('— browser console: clean —');
+}
+
+// close the tab we opened, but leave an attached (user-owned) Chrome running
+await browser.send('Target.closeTarget', { targetId }).catch(() => {});
 browser.close();
-chrome.kill();
+if (chrome) chrome.kill();
 server.close();
 process.exit(0);

@@ -1,6 +1,11 @@
 // src/ui.js
 import { MYTHEME_ORDER, MYTHEME_LABELS } from './mythemes.js';
 
+// llorer (laurel) is no longer user-toggleable — the bare branches carry the
+// transformation, matching the Picasso reference. It stays in the engine as an
+// optional dependency but is hidden from the controls.
+const TOGGLEABLE = MYTHEME_ORDER.filter((id) => id !== 'llorer');
+
 // callbacks: { regenerate, rebuild, exportPNG, exportSVG }
 export function setupUI(state, callbacks) {
   const root = document.getElementById('controls');
@@ -21,7 +26,7 @@ export function setupUI(state, callbacks) {
   const bRend = button(gModes, '', () => { state.renderMode = state.renderMode === 'multi' ? 'single' : 'multi'; refreshLabels(); callbacks.rebuild(); });
 
   const gMyth = group('Mitemes');
-  for (const id of MYTHEME_ORDER) {
+  for (const id of TOGGLEABLE) {
     const label = document.createElement('label'); label.className = 'toggle';
     const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = state.active[id];
     cb.onchange = () => { state.active[id] = cb.checked; callbacks.rebuild(); };
@@ -37,7 +42,7 @@ export function setupUI(state, callbacks) {
     s.oninput = () => { state.params[key] = parseFloat(s.value); callbacks.rebuild(); };
     wrap.appendChild(l); wrap.appendChild(s); gParams.appendChild(wrap);
   };
-  slider('count', 'Nombre de mitemes', 1, 7, 1);
+  slider('count', 'Nombre de mitemes', 1, TOGGLEABLE.length, 1);
   slider('temperature', 'Temperatura', 0, 2.5, 0.1);
   slider('jitter', 'Tremolor', 0, 8, 0.5);
   slider('scatter', 'Dispersió', 0, 80, 1);
@@ -60,10 +65,9 @@ export function setupUI(state, callbacks) {
     else if (e.key === 's' || e.key === 'S') callbacks.exportPNG();
     else if (e.key === 'm' || e.key === 'M') bGram.click();
     else if (e.key === 'r' || e.key === 'R') bRend.click();
-    else if (/^[1-7]$/.test(e.key)) {
-      const id = MYTHEME_ORDER[parseInt(e.key, 10) - 1];
-      state.active[id] = !state.active[id];
-      setupUI(state, callbacks); callbacks.rebuild();
+    else if (/^[1-9]$/.test(e.key)) {
+      const id = TOGGLEABLE[parseInt(e.key, 10) - 1];
+      if (id) { state.active[id] = !state.active[id]; setupUI(state, callbacks); callbacks.rebuild(); }
     }
   });
 }
