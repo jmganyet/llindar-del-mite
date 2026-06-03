@@ -149,9 +149,15 @@ if (logs.length) {
   console.log('— browser console: clean —');
 }
 
-// close the tab we opened, but leave an attached (user-owned) Chrome running
-await browser.send('Target.closeTarget', { targetId }).catch(() => {});
-browser.close();
-if (chrome) chrome.kill();
+// headless: close our tab and kill our Chrome. attached: leave the tab open so
+// the user can keep looking at the result live (and bring it to the front).
+if (chrome) {
+  await browser.send('Target.closeTarget', { targetId }).catch(() => {});
+  browser.close();
+  chrome.kill();
+} else {
+  await browser.send('Page.bringToFront', {}, S).catch(() => {});
+  browser.close();
+}
 server.close();
 process.exit(0);
