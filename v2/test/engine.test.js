@@ -11,7 +11,7 @@ test('defaultState activates all 13 strokes', () => {
   const s = defaultState();
   assert.equal(Object.keys(s.active).length, 13);
   for (const id of STROKE_ORDER) assert.equal(s.active[id], true);
-  assert.equal(s.grammar, 'on');
+  assert.equal(s.grammar, 'off');
   assert.equal(s.distance, 0);
 });
 
@@ -23,7 +23,7 @@ test('buildComposition is deterministic for same state', () => {
 });
 
 test('at D=0 grammar ON: dafne-cos p0 is exactly home', () => {
-  const s = defaultState(); // seed=1, D=0, grammar=on
+  const s = defaultState(); s.grammar = 'on'; // seed=1, D=0, grammar=on
   const comp = buildComposition(s);
   const placed = Object.fromEntries(comp.placed.map(p => [p.id, p]));
   assert.deepEqual(placed['dafne-cos'].segments[0].p0, {x:198, y:462});

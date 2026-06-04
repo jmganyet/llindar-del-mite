@@ -9,7 +9,7 @@ export function defaultState() {
   return {
     seed: 1,
     distance: 0,
-    grammar: 'on',
+    grammar: 'off',
     active: Object.fromEntries(STROKE_ORDER.map(id => [id, true])),
   };
 }
