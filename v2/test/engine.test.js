@@ -36,6 +36,21 @@ test('toggling a stroke off removes it from placed', () => {
   assert.ok(!comp.placed.some(p => p.id === 'dafne-pit'));
 });
 
+test('toggling a stroke off leaves all other strokes identical (no regen)', () => {
+  for (const grammar of ['on', 'off']) {
+    const full = defaultState(); full.grammar = grammar; full.distance = 0.5;
+    const off  = defaultState(); off.grammar  = grammar; off.distance  = 0.5;
+    off.active['dafne-pit'] = false;
+    const fullMap = Object.fromEntries(buildComposition(full).placed.map(p => [p.id, p]));
+    const offMap  = Object.fromEntries(buildComposition(off).placed.map(p => [p.id, p]));
+    for (const id of STROKE_ORDER) {
+      if (id === 'dafne-pit') continue;
+      assert.deepEqual(offMap[id].segments, fullMap[id].segments,
+        `${id} changed when toggling dafne-pit (grammar=${grammar})`);
+    }
+  }
+});
+
 test('D=1 produces different placement than D=0', () => {
   const s0 = defaultState(); s0.distance = 0;
   const s1 = defaultState(); s1.distance = 1;
