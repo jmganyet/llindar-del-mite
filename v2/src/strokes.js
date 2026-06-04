@@ -1,5 +1,7 @@
 // 13 home bezier paths traced from Picasso CE00056 (Dafnis i Febus)
 // Coordinate space: 380×480 (matches SVG tracing session)
+// Note: leg endpoints reach y≈498, slightly beyond the 480 frame — intentional,
+// mirrors Picasso where legs extend to the composition edge. p5 clips naturally.
 
 export const STROKE_ORDER = [
   'dafne-cos','dafne-cap','dafne-branca-esq','dafne-branca-dre','dafne-pit','dafne-cames',
