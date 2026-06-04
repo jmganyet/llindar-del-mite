@@ -1,0 +1,25 @@
+<!-- v2/test/render-manual.html -->
+<!doctype html>
+<html lang="ca"><head><meta charset="utf-8"><title>render v2 manual</title></head>
+<body>
+<script src="../vendor/p5.min.js"></script>
+<script type="module">
+import { defaultState, buildComposition } from '../src/engine.js';
+import { drawComposition } from '../src/render.js';
+const style = { bg:'#c8a062', stroke:'#4a2c14' };
+let state = defaultState(), comp;
+new p5(p => {
+  p.setup = () => {
+    p.createCanvas(760, 960); p.noLoop();
+    comp = buildComposition(state); p.redraw();
+  };
+  p.draw = () => drawComposition(p, comp, style);
+  window.setD = d => { state.distance = d; comp = buildComposition(state); p.redraw(); };
+  window.setOff = () => { state.grammar='off'; comp = buildComposition(state); p.redraw(); };
+  window.regen = () => { state.seed = Math.random()*1e9|0; comp = buildComposition(state); p.redraw(); };
+});
+</script>
+<p style="font-family:monospace;font-size:.8rem;">
+  Console: <code>setD(0.5)</code> · <code>setOff()</code> · <code>regen()</code>
+</p>
+</body></html>

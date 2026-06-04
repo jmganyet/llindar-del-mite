@@ -1,0 +1,21 @@
+:root { --bg:#c8a062; --ink:#4a2c14; --panel:#d8b884; }
+* { box-sizing:border-box; }
+body { margin:0; font-family:Georgia,'Times New Roman',serif; color:var(--ink);
+       background:#b89055; display:flex; min-height:100vh; }
+#canvas-holder { flex:1; display:flex; align-items:center; justify-content:center; padding:12px; }
+#controls { width:260px; background:var(--panel); padding:14px; height:100vh;
+            overflow-y:auto; box-shadow:-2px 0 8px rgba(0,0,0,.18); }
+.group { margin-bottom:16px; }
+.group h3 { margin:0 0 6px; font-size:11px; text-transform:uppercase;
+            letter-spacing:.09em; opacity:.65; }
+button { display:block; width:100%; margin:3px 0; padding:7px 8px;
+         background:var(--bg); color:var(--ink); border:1px solid var(--ink);
+         border-radius:4px; cursor:pointer; font:inherit; font-size:12px;
+         text-align:left; }
+button:hover { background:var(--ink); color:var(--bg); }
+button.btn-primary { font-weight:bold; border-width:1.5px; }
+kbd { font:inherit; font-size:.8em; opacity:.55; }
+.dial-wrap { display:flex; align-items:center; gap:6px; font-size:11px; }
+.dial-wrap input[type=range] { flex:1; }
+label.toggle { display:block; font-size:12px; padding:2px 0; cursor:pointer; }
+label.toggle input { margin-right:5px; }
